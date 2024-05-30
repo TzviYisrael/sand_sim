@@ -1,3 +1,5 @@
+use std::{fmt::format, i32};
+
 use macroquad::prelude::*;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
@@ -117,25 +119,21 @@ async fn main() {
 
         if is_key_pressed(KeyCode::Right) {
             color_index += 1;
-            println!("{}", color_palette_names[color_index]);
             if color_index == color_palette.len() - 1 {
                 color_index = 0;
             }
         }
         if is_key_pressed(KeyCode::Left) {
             color_index -= 1;
-            println!("{}", color_palette_names[color_index]);
             if color_index == 0 {
                 color_index = color_palette.len() - 1;
             }
         }
-        if is_key_pressed(KeyCode::Up) {
-            brush_size += 2;
-            println!("{}", brush_size);
+        if is_key_down(KeyCode::Up) && brush_size < h as i32 / 3 {
+            brush_size += 1;
         }
-        if is_key_pressed(KeyCode::Down) {
-            brush_size -= 2;
-            println!("{}", brush_size);
+        if is_key_down(KeyCode::Down) && brush_size > 0 {
+            brush_size -= 1;
         }
 
         if is_mouse_button_down(MouseButton::Left) {
@@ -196,9 +194,16 @@ async fn main() {
         }
 
         texture.update(&image);
-
+        let bs = format!("{}", brush_size);
         draw_texture(&texture, 0., 0., WHITE);
-
+        draw_text(bs.as_str(), 20.0, 20.0, 30.0, DARKGRAY);
+        draw_rectangle(
+            w as f32 - 30.0,
+            10.0,
+            20.0,
+            20.0,
+            color_palette[color_index],
+        );
         next_frame().await
     }
 }
