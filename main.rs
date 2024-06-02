@@ -21,7 +21,7 @@ fn window_conf() -> Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
-    const BACKGROUND: Color = WHITE;
+    const BACKGROUND: Color = BLACK;
     let w = screen_width() as usize;
     let h = screen_height() as usize;
     let mut brush_size: i32 = 40;
@@ -186,17 +186,8 @@ async fn main() {
         }
 
         texture.update(&image);
-        // let bs = format!("{}", brush_size);
         draw_texture(&texture, 0., 0., WHITE);
-        //draw_text(bs.as_str(), 20.0, 20.0, 30.0, DARKGRAY);
-        draw_rectangle(
-            w as f32 - 40.0,
-            10.0,
-            30.0,
-            30.0,
-            color_palette[color_index],
-        );
-
+        draw_circle(w as f32 - 30.0, 30.0, 15.0, color_palette[color_index]);
         draw_circle_lines(
             mouse_x,
             mouse_y,
