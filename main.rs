@@ -1,5 +1,3 @@
-use std::{fmt::format, i32};
-
 use macroquad::prelude::*;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
@@ -13,7 +11,7 @@ struct Cell(CellState, Color);
 
 fn window_conf() -> Conf {
     Conf {
-        window_title: "sand".to_owned(),
+        window_title: "sand_sim".to_owned(),
         window_width: 1500,
         window_height: 1500,
         // fullscreen: true,
@@ -26,8 +24,8 @@ async fn main() {
     const BACKGROUND: Color = WHITE;
     let w = screen_width() as usize;
     let h = screen_height() as usize;
-    let mut brush_size: i32 = 20;
-    let mut color_index = 1;
+    let mut brush_size: i32 = 40;
+    let mut color_index = 10;
 
     let mut cells = vec![Cell(CellState::Empty, BACKGROUND); w * h];
     let mut buffer = vec![Cell(CellState::Empty, BACKGROUND); w * h];
@@ -38,39 +36,11 @@ async fn main() {
         GOLD, GRAY, GREEN, LIGHTGRAY, LIME, MAGENTA, MAROON, ORANGE, PINK, PURPLE, RED, SKYBLUE,
         VIOLET, YELLOW,
     ];
-    let color_palette_names = [
-        "BEIGE",
-        "BLACK",
-        "BLANK",
-        "BLUE",
-        "BROWN",
-        "DARKBLUE",
-        "DARKBROWN",
-        "DARKGRAY",
-        "DARKGREEN",
-        "DARKPURPLE",
-        "GOLD",
-        "GRAY",
-        "GREEN",
-        "LIGHTGRAY",
-        "LIME",
-        "MAGENTA",
-        "MAROON",
-        "ORANGE",
-        "PINK",
-        "PURPLE",
-        "RED",
-        "SKYBLUE",
-        "VIOLET",
-        "YELLOW",
-    ];
 
-    // for cell in cells.iter_mut() {
-    // if rand::gen_range(0, 30) == 0 {
-    // *cell = Cell(CellState::Full, BLUE);
-    // }
-    // }
     let texture = Texture2D::from_image(&image);
+
+    let mut mouse_x: f32;
+    let mut mouse_y: f32;
 
     loop {
         clear_background(WHITE);
@@ -78,6 +48,7 @@ async fn main() {
         let w = image.width();
         let h = image.height();
 
+        (mouse_x, mouse_y) = mouse_position();
         for y in 0..h as i32 {
             for x in 0..w as i32 {
                 let current_cell = cells[y as usize * w + x as usize];
@@ -114,9 +85,6 @@ async fn main() {
             }
         }
 
-        let mut mouse_x: f32;
-        let mut mouse_y: f32;
-
         if is_key_pressed(KeyCode::Right) {
             color_index += 1;
             if color_index == color_palette.len() - 1 {
@@ -134,6 +102,30 @@ async fn main() {
         }
         if is_key_down(KeyCode::Down) && brush_size > 0 {
             brush_size -= 1;
+        }
+
+        let (_mouse_wheel_x, mouse_wheel_y) = mouse_wheel();
+        if is_mouse_button_down(MouseButton::Middle) {
+            if mouse_wheel_y < 0.0 {
+                if color_index == 0 {
+                    color_index = color_palette.len() - 1;
+                } else {
+                    color_index -= 1;
+                }
+            } else if mouse_wheel_y > 0.0 {
+                if color_index >= color_palette.len() - 1 {
+                    color_index = 0;
+                } else {
+                    color_index += 1;
+                }
+            }
+        } else {
+            brush_size += mouse_wheel_y as i32 * 5;
+            if brush_size < 0 {
+                brush_size = 0;
+            } else if brush_size > 250 {
+                brush_size = 250;
+            }
         }
 
         if is_mouse_button_down(MouseButton::Left) {
@@ -162,8 +154,8 @@ async fn main() {
                 }
             }
         }
+
         if is_mouse_button_down(MouseButton::Right) {
-            (mouse_x, mouse_y) = mouse_position();
             for j in -brush_size..=brush_size {
                 for i in -brush_size..=brush_size {
                     // out of bounds
@@ -194,16 +186,25 @@ async fn main() {
         }
 
         texture.update(&image);
-        let bs = format!("{}", brush_size);
+        // let bs = format!("{}", brush_size);
         draw_texture(&texture, 0., 0., WHITE);
-        draw_text(bs.as_str(), 20.0, 20.0, 30.0, DARKGRAY);
+        //draw_text(bs.as_str(), 20.0, 20.0, 30.0, DARKGRAY);
         draw_rectangle(
-            w as f32 - 30.0,
+            w as f32 - 40.0,
             10.0,
-            20.0,
-            20.0,
+            30.0,
+            30.0,
             color_palette[color_index],
         );
+
+        draw_circle_lines(
+            mouse_x,
+            mouse_y,
+            brush_size as f32,
+            2.0,
+            color_palette[color_index],
+        );
+
         next_frame().await
     }
 }
