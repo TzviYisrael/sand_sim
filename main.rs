@@ -1,3 +1,4 @@
+//basic sand simulator, made by Tzvi Yisrael
 use macroquad::prelude::*;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
@@ -24,8 +25,8 @@ async fn main() {
     const BACKGROUND: Color = WHITE;
     let w = screen_width() as usize;
     let h = screen_height() as usize;
-    let mut brush_size: i32 = 40;
-    let mut color_index = 10;
+    let mut brush_size: f32 = 40.0;
+    let mut color_index: usize = 10;
     let mut optimisation_line: usize = h;
     let mut help_message_time: i32 = 200;
 
@@ -54,9 +55,9 @@ async fn main() {
 
         //find the first line that have an empty cell
         let mut full_line = true;
-        for y in (0..(optimisation_line - 1) as i32).rev() {
-            for x in 0..w as i32 {
-                if cells[y as usize * w + x as usize].0 == CellState::Empty {
+        for y in (0..(optimisation_line - 1)).rev() {
+            for x in 0..w {
+                if cells[y * w + x].0 == CellState::Empty {
                     full_line = false;
                     break;
                 }
@@ -70,38 +71,31 @@ async fn main() {
             }
         }
 
-        for y in 0..optimisation_line as i32 {
-            for x in 0..w as i32 {
-                let current_cell = cells[y as usize * w + x as usize];
+        for y in 0..optimisation_line {
+            for x in 0..w {
+                let current_cell = cells[y * w + x];
                 if current_cell.0 == CellState::Empty {
                     continue;
                 }
-                if y + 2 >= h as i32 {
+                if y + 1 >= h {
                     continue;
                 }
-                let bottom_cell = cells[(y + 1) as usize * w + x as usize];
+                let bottom_cell = cells[(y + 1) * w + x];
                 if bottom_cell.0 == CellState::Empty {
-                    buffer[y as usize * w + x as usize].0 = CellState::Empty;
-                    buffer[(y + 1) as usize * w + x as usize].0 = CellState::Full;
-                    buffer[(y + 1) as usize * w + x as usize].1 =
-                        buffer[y as usize * w + x as usize].1;
-                    buffer[y as usize * w + x as usize].1 = BACKGROUND;
-                } else if x - 1 >= 0
-                    && cells[(y + 1) as usize * w + (x - 1) as usize].0 == CellState::Empty
-                {
-                    buffer[y as usize * w + x as usize].0 = CellState::Empty;
-                    buffer[(y + 1) as usize * w + (x - 1) as usize].0 = CellState::Full;
-                    buffer[(y + 1) as usize * w + (x - 1) as usize].1 =
-                        buffer[y as usize * w + x as usize].1;
-                    buffer[y as usize * w + x as usize].1 = BACKGROUND;
-                } else if x + 1 < w as i32
-                    && cells[(y + 1) as usize * w + (x + 1) as usize].0 == CellState::Empty
-                {
-                    buffer[y as usize * w + x as usize].0 = CellState::Empty;
-                    buffer[(y + 1) as usize * w + (x + 1) as usize].0 = CellState::Full;
-                    buffer[(y + 1) as usize * w + (x + 1) as usize].1 =
-                        buffer[y as usize * w + x as usize].1;
-                    buffer[y as usize * w + x as usize].1 = BACKGROUND;
+                    buffer[y * w + x].0 = CellState::Empty;
+                    buffer[(y + 1) * w + x].0 = CellState::Full;
+                    buffer[(y + 1) * w + x].1 = buffer[y * w + x].1;
+                    buffer[y * w + x].1 = BACKGROUND;
+                } else if x >= 1 && cells[(y + 1) * w + (x - 1)].0 == CellState::Empty {
+                    buffer[y * w + x].0 = CellState::Empty;
+                    buffer[(y + 1) * w + (x - 1)].0 = CellState::Full;
+                    buffer[(y + 1) * w + (x - 1)].1 = buffer[y * w + x].1;
+                    buffer[y * w + x].1 = BACKGROUND;
+                } else if x + 1 < w && cells[(y + 1) * w + (x + 1)].0 == CellState::Empty {
+                    buffer[y * w + x].0 = CellState::Empty;
+                    buffer[(y + 1) * w + (x + 1)].0 = CellState::Full;
+                    buffer[(y + 1) * w + (x + 1)].1 = buffer[y * w + x].1;
+                    buffer[y * w + x].1 = BACKGROUND;
                 }
             }
         }
@@ -118,11 +112,11 @@ async fn main() {
                 color_index = color_palette.len() - 1;
             }
         }
-        if is_key_down(KeyCode::Up) && brush_size < h as i32 / 3 {
-            brush_size += 1;
+        if is_key_down(KeyCode::Up) && brush_size < h as f32 / 3.0 {
+            brush_size += 1.0;
         }
-        if is_key_down(KeyCode::Down) && brush_size > 0 {
-            brush_size -= 1;
+        if is_key_down(KeyCode::Down) && brush_size > 0.0 {
+            brush_size -= 1.0;
         }
 
         let (_mouse_wheel_x, mouse_wheel_y) = mouse_wheel();
@@ -141,61 +135,60 @@ async fn main() {
                 }
             }
         } else {
-            brush_size += mouse_wheel_y as i32 * 5;
-            if brush_size < 0 {
-                brush_size = 0;
-            } else if brush_size > 250 {
-                brush_size = 250;
+            brush_size += mouse_wheel_y * 5.0;
+            if brush_size < 0.0 {
+                brush_size = 0.0;
+            } else if brush_size < h as f32 / 3.0 {
+                brush_size = h as f32 / 3.0;
             }
         }
 
         if is_mouse_button_down(MouseButton::Left) {
             (mouse_x, mouse_y) = mouse_position();
-            for j in -brush_size..=brush_size {
-                for i in -brush_size..=brush_size {
+            for _j in -brush_size as i32..=brush_size as i32 {
+                let j = _j as f32;
+                for _i in -brush_size as i32..=brush_size as i32 {
+                    let i = _i as f32;
                     // out of bounds
-                    if ((i * i + j * j) as f32).sqrt() >= brush_size as f32 {
+                    if (i * i + j * j).sqrt() >= brush_size {
                         continue;
                     }
-                    if mouse_y + (j as f32) < 0.0
-                        || mouse_y + (j as f32) >= h as f32
-                        || mouse_x + (i as f32) < 0.0
-                        || mouse_x + (i as f32) >= w as f32
+                    if mouse_y + j < 0.0
+                        || mouse_y + j >= h as f32
+                        || mouse_x + i < 0.0
+                        || mouse_x + i >= w as f32
                         || rand::gen_range(0, 2) == 0
                     {
                         continue;
                     } else {
-                        buffer[(mouse_y + (j as f32)) as usize * w
-                            + (mouse_x + (i as f32)) as usize]
-                            .0 = CellState::Full;
-                        buffer[(mouse_y + (j as f32)) as usize * w
-                            + (mouse_x + (i as f32)) as usize]
-                            .1 = color_palette[color_index];
+                        buffer[(mouse_y + j) as usize * w + (mouse_x + i) as usize].0 =
+                            CellState::Full;
+                        buffer[(mouse_y + j) as usize * w + (mouse_x + i) as usize].1 =
+                            color_palette[color_index];
                     }
                 }
             }
         }
 
         if is_mouse_button_down(MouseButton::Right) {
-            for j in -brush_size..=brush_size {
-                for i in -brush_size..=brush_size {
+            for _j in -brush_size as i32..=brush_size as i32 {
+                let j = _j as f32;
+                for _i in -brush_size as i32..=brush_size as i32 {
+                    let i = _i as f32;
                     // out of bounds
-                    if ((i * i + j * j) as f32).sqrt() >= brush_size as f32 {
+                    if (i * i + j * j).sqrt() >= brush_size {
                         continue;
                     }
-                    if mouse_y + (j as f32) < 0.0
-                        || mouse_y + (j as f32) >= h as f32
-                        || mouse_x + (i as f32) < 0.0
-                        || mouse_x + (i as f32) >= w as f32
+                    if mouse_y + j < 0.0
+                        || mouse_y + j >= h as f32
+                        || mouse_x + i < 0.0
+                        || mouse_x + i >= w as f32
                     {
                         continue;
                     } else {
-                        buffer[(mouse_y + (j as f32)) as usize * w
-                            + (mouse_x + (i as f32)) as usize]
-                            .0 = CellState::Empty;
-                        buffer[(mouse_y + (j as f32)) as usize * w
-                            + (mouse_x + (i as f32)) as usize]
-                            .1 = BACKGROUND;
+                        buffer[(mouse_y + j) as usize * w + (mouse_x + i) as usize].0 =
+                            CellState::Empty;
+                        buffer[(mouse_y + j) as usize * w + (mouse_x + i) as usize].1 = BACKGROUND;
                     }
                 }
             }
@@ -216,7 +209,7 @@ async fn main() {
         draw_circle_lines(
             mouse_x,
             mouse_y,
-            brush_size as f32,
+            brush_size,
             2.0,
             color_palette[color_index],
         );
@@ -243,7 +236,7 @@ async fn main() {
                 DARKGRAY,
             );
         }
-        if help_message_time > -50 {
+        if help_message_time > -70 {
             draw_text(
                 "press and roll mouse wheel to change color",
                 w as f32 / 2.0 - 270.0,
