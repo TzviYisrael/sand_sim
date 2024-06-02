@@ -26,6 +26,7 @@ async fn main() {
     let h = screen_height() as usize;
     let mut brush_size: i32 = 40;
     let mut color_index = 10;
+    let mut optimisation_line: usize = 30;
 
     let mut cells = vec![Cell(CellState::Empty, BACKGROUND); w * h];
     let mut buffer = vec![Cell(CellState::Empty, BACKGROUND); w * h];
@@ -194,6 +195,15 @@ async fn main() {
             brush_size as f32,
             2.0,
             color_palette[color_index],
+        );
+        //dbg
+        draw_line(
+            0.0,
+            optimisation_line as f32,
+            w as f32,
+            optimisation_line as f32,
+            2.0,
+            RED,
         );
 
         next_frame().await
