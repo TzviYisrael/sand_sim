@@ -13,8 +13,8 @@ struct Cell(CellState, Color);
 fn window_conf() -> Conf {
     Conf {
         window_title: "sand_sim".to_owned(),
-        window_width: 1500,
-        window_height: 1500,
+        window_width: 1000,
+        window_height: 1000,
         // fullscreen: true,
         ..Default::default()
     }
@@ -65,6 +65,9 @@ async fn main() {
 
         let mut full_line = true;
         for x in 0..w {
+            if optimisation_line == 0 {
+                break;
+            }
             if cells[(optimisation_line - 1) * w + x].0 == CellState::Empty {
                 full_line = false;
                 break;
@@ -243,6 +246,7 @@ async fn main() {
             help_message_time -= 1;
         }
         // dbg
+        //draw_text(format!("FPS: {}", get_fps()).as_str(), 5., 26., 32., GRAY);
         // draw_line(0.0, optimisation_line as f32, w,
         // as f32,optimisation_line as f32,2.0,RED,);
 
