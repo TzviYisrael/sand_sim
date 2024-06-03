@@ -214,32 +214,32 @@ async fn main() {
         if help_message_time > 0 {
             draw_text(
                 "left mouse buttom to add sand",
-                w as f32 / 2.0 - 200.0,
+                w as f32 / 2.0 - 180.0,
                 120.0,
-                30.0,
+                25.0,
                 DARKGRAY,
             );
             draw_text(
                 "right mouse buttom to remove sand",
-                w as f32 / 2.0 - 220.0,
+                w as f32 / 2.0 - 200.0,
                 140.0,
-                30.0,
+                25.0,
                 DARKGRAY,
             );
             draw_text(
                 "roll mouse wheel to change brush size",
-                w as f32 / 2.0 - 250.0,
+                w as f32 / 2.0 - 230.0,
                 180.0,
-                30.0,
+                25.0,
                 DARKGRAY,
             );
         }
         if help_message_time > -70 {
             draw_text(
                 "press and roll mouse wheel to change color",
-                w as f32 / 2.0 - 270.0,
+                w as f32 / 2.0 - 250.0,
                 200.0,
-                30.0,
+                25.0,
                 DARKGRAY,
             );
 
