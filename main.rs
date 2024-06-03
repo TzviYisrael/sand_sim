@@ -45,6 +45,16 @@ async fn main() {
     let mut mouse_x: f32;
     let mut mouse_y: f32;
 
+    fn switch_cells(
+        cells: &mut Vec<Cell>,
+        buff: &mut Vec<Cell>,
+        cell_index1: usize,
+        cell_index2: usize,
+    ) {
+        buff[cell_index1] = cells[cell_index2];
+        buff[cell_index2] = cells[cell_index1];
+    }
+
     loop {
         clear_background(WHITE);
 
@@ -53,49 +63,34 @@ async fn main() {
 
         (mouse_x, mouse_y) = mouse_position();
 
-        //find the first line that have an empty cell
         let mut full_line = true;
-        for y in (0..(optimisation_line - 1)).rev() {
-            for x in 0..w {
-                if cells[y * w + x].0 == CellState::Empty {
-                    full_line = false;
-                    break;
-                }
-            }
-            if full_line {
-                if optimisation_line > 0 {
-                    optimisation_line -= 1;
-                }
-            } else {
+        for x in 0..w {
+            if cells[(optimisation_line - 1) * w + x].0 == CellState::Empty {
+                full_line = false;
                 break;
+            }
+        }
+        if full_line {
+            if optimisation_line > 0 {
+                optimisation_line -= 1;
             }
         }
 
         for y in 0..optimisation_line {
             for x in 0..w {
-                let current_cell = cells[y * w + x];
-                if current_cell.0 == CellState::Empty {
+                //corrent cell [y * w + x]
+                if cells[y * w + x].0 == CellState::Empty {
                     continue;
                 }
                 if y + 1 >= h {
                     continue;
                 }
-                let bottom_cell = cells[(y + 1) * w + x];
-                if bottom_cell.0 == CellState::Empty {
-                    buffer[y * w + x].0 = CellState::Empty;
-                    buffer[(y + 1) * w + x].0 = CellState::Full;
-                    buffer[(y + 1) * w + x].1 = buffer[y * w + x].1;
-                    buffer[y * w + x].1 = BACKGROUND;
+                if cells[(y + 1) * w + x].0 == CellState::Empty {
+                    switch_cells(&mut cells, &mut buffer, y * w + x, (y + 1) * w + x);
                 } else if x >= 1 && cells[(y + 1) * w + (x - 1)].0 == CellState::Empty {
-                    buffer[y * w + x].0 = CellState::Empty;
-                    buffer[(y + 1) * w + (x - 1)].0 = CellState::Full;
-                    buffer[(y + 1) * w + (x - 1)].1 = buffer[y * w + x].1;
-                    buffer[y * w + x].1 = BACKGROUND;
+                    switch_cells(&mut cells, &mut buffer, y * w + x, (y + 1) * w + (x - 1));
                 } else if x + 1 < w && cells[(y + 1) * w + (x + 1)].0 == CellState::Empty {
-                    buffer[y * w + x].0 = CellState::Empty;
-                    buffer[(y + 1) * w + (x + 1)].0 = CellState::Full;
-                    buffer[(y + 1) * w + (x + 1)].1 = buffer[y * w + x].1;
-                    buffer[y * w + x].1 = BACKGROUND;
+                    switch_cells(&mut cells, &mut buffer, y * w + x, (y + 1) * w + (x + 1));
                 }
             }
         }
@@ -138,7 +133,7 @@ async fn main() {
             brush_size += mouse_wheel_y * 5.0;
             if brush_size < 0.0 {
                 brush_size = 0.0;
-            } else if brush_size < h as f32 / 3.0 {
+            } else if brush_size > h as f32 / 3.0 {
                 brush_size = h as f32 / 3.0;
             }
         }
@@ -247,8 +242,9 @@ async fn main() {
 
             help_message_time -= 1;
         }
-        //dbg
-        // draw_line(0.0,optimisation_line as f32,w as f32,optimisation_line as f32,2.0,RED,);
+        // dbg
+        // draw_line(0.0, optimisation_line as f32, w,
+        // as f32,optimisation_line as f32,2.0,RED,);
 
         next_frame().await
     }
