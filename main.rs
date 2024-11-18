@@ -13,8 +13,8 @@ struct Cell(CellState, Color);
 fn window_conf() -> Conf {
     Conf {
         window_title: "sand_sim".to_owned(),
-        window_width: 1000,
-        window_height: 1000,
+        window_width: 1500,
+        window_height: 1500,
         // fullscreen: true,
         ..Default::default()
     }
@@ -246,7 +246,11 @@ async fn main() {
             help_message_time -= 1;
         }
         // dbg
-        //draw_text(format!("FPS: {}", get_fps()).as_str(), 5., 26., 32., GRAY);
+        color_index += 1;
+        if color_index == color_palette.len() - 1 {
+            color_index = 0;
+        }
+        draw_text(format!("FPS: {}", get_fps()).as_str(), 5., 26., 32., GRAY);
         // draw_line(0.0, optimisation_line as f32, w,
         // as f32,optimisation_line as f32,2.0,RED,);
 
