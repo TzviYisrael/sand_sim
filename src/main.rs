@@ -246,10 +246,10 @@ async fn main() {
             help_message_time -= 1;
         }
         // dbg
-        color_index += 1;
-        if color_index == color_palette.len() - 1 {
-            color_index = 0;
-        }
+        // color_index += 1;
+        // if color_index == color_palette.len() - 1 {
+        //     color_index = 0;
+        // }
         draw_text(format!("FPS: {}", get_fps()).as_str(), 5., 26., 32., GRAY);
         // draw_line(0.0, optimisation_line as f32, w,
         // as f32,optimisation_line as f32,2.0,RED,);
